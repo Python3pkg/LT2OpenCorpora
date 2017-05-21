@@ -71,4 +71,4 @@ if __name__ == '__main__':
     if args.debug:
         logging.debug("=" * 50)
         for term, cnt in REPEATED_FORMS.most_common():
-            logging.debug(u"%s: %s" % (term, cnt))
+            logging.debug("%s: %s" % (term, cnt))

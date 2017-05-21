@@ -51,7 +51,7 @@ if __name__ == '__main__':
             nodes_by_LT[tag["name"]] = node
             nodes_by_opencorpora[tag["opencorpora tags"]] = node
 
-    for k, node in nodes_by_opencorpora.iteritems():
+    for k, node in nodes_by_opencorpora.items():
         graph.add_node(node)
 
         if node.parent and node.parent != "aux":

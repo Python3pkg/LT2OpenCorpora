@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+
 import re
 import sys
 import gzip
@@ -50,11 +50,10 @@ class TagSet(object):
             for tag in r:
                 # lemma form column represents set of tags that wordform should
                 # have to be threatened as lemma.
-                tag["lemma form"] = filter(None, map(unicode.strip,
-                                           tag["lemma form"].split(",")))
+                tag["lemma form"] = [_f for _f in map(str.strip,
+                                           tag["lemma form"].split(",")) if _f]
 
-                tag["divide by"] = filter(
-                    None, map(unicode.strip, tag["divide by"].split(",")))
+                tag["divide by"] = [_f for _f in map(str.strip, tag["divide by"].split(",")) if _f]
 
                 # opencopropra tags column maps LT tags to OpenCorpora tags
                 # when possible
@@ -107,7 +106,7 @@ class TagSet(object):
 
     def export_to_xml(self):
         grammemes = ET.Element("grammemes")
-        for tag in self.full.values():
+        for tag in list(self.full.values()):
             grammeme = ET.SubElement(grammemes, "grammeme")
             if tag["parent"] != "aux":
                 grammeme.attrib["parent"] = tag["parent"]
@@ -135,7 +134,7 @@ class WordForm(object):
                 "|:rel|:neg|:ind|:gen)+)(.*)", "pron\\3\\2\\4", tags)
         self.form, self.tags = form, tags
 
-        self.tags = map(unicode.strip, self.tags.split(":"))
+        self.tags = list(map(str.strip, self.tags.split(":")))
         self.is_lemma = is_lemma
 
         # tags signature is string made out of sorted list of wordform tags
@@ -145,7 +144,7 @@ class WordForm(object):
 
         # Here we are trying to determine exact part of speech for this
         # wordform
-        pos_tags = filter(lambda x: x in tag_set.post, self.tags)
+        pos_tags = [x for x in self.tags if x in tag_set.post]
         self.pos = ""
 
         # And report cases when it's missing or wordform has more than two
@@ -207,8 +206,7 @@ class Lemma(object):
                 "lemma %s got %s forms with same tagset %s: %s" %
                 (self, len(self.forms[form.tags_signature]),
                  form.tags_signature,
-                 ", ".join(map(lambda x: x.form,
-                               self.forms[form.tags_signature]))))
+                 ", ".join([x.form for x in self.forms[form.tags_signature]])))
         else:
             self.forms[form.tags_signature] = [form]
 
@@ -237,7 +235,7 @@ class Lemma(object):
         l_form = ET.SubElement(lemma, "l", t=self.lemma_form.form.lower())
         self._add_tags_to_element(l_form, common_tags)
 
-        for forms in self.forms.values():
+        for forms in list(self.forms.values()):
             for form in forms:
                 el = ET.Element("f", t=form.form.lower())
                 if form.is_lemma:
@@ -263,7 +261,7 @@ class Dictionary(object):
             current_lemma = None
 
             for i, line in enumerate(fp):
-                line = unicode(line.decode('utf-8'))
+                line = str(line.decode('utf-8'))
                 # Here we've found a new lemma, let's add old one to the list
                 # and continue
                 if not line.startswith("  "):
@@ -291,7 +289,7 @@ class Dictionary(object):
         root.append(self.tag_set.export_to_xml())
         lemmata = ET.SubElement(root, "lemmata")
 
-        for i, lemma in enumerate(self.lemmas.values()):
+        for i, lemma in enumerate(list(self.lemmas.values())):
             lemma_xml = lemma.export_to_xml(i + 1)
             if lemma_xml is not None:
                 lemmata.append(lemma_xml)
